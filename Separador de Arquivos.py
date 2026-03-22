@@ -1,8 +1,12 @@
 import os
 import shutil
 
-# Caminho da pasta Downloads
-pasta = r"C:\Users\Ph\Downloads"
+# Usuário escolhe a pasta
+pasta = input("Digite o caminho da pasta que deseja organizar: ")
+
+if not os.path.exists(pasta):
+    print("❌ Caminho inválido!")
+    exit()
 
 # Tipos de arquivos
 tipos = {
@@ -11,11 +15,14 @@ tipos = {
     'Documentos': ['.pdf', '.doc', '.docx', '.txt']
 }
 
+# Pasta para arquivos não identificados
+outros = "Outros"
+
 movidos = 0
 ignorados = 0
 
-# Criar pastas se não existirem
-for pasta_nome in tipos:
+# Criar pastas
+for pasta_nome in list(tipos.keys()) + [outros]:
     caminho = os.path.join(pasta, pasta_nome)
     if not os.path.exists(caminho):
         os.makedirs(caminho)
@@ -24,31 +31,47 @@ for pasta_nome in tipos:
 for arquivo in os.listdir(pasta):
     caminho_arquivo = os.path.join(pasta, arquivo)
 
-    if os.path.isfile(caminho_arquivo):
-        movido = False
+    # Ignorar pastas
+    if not os.path.isfile(caminho_arquivo):
+        continue
 
-        for pasta_nome, extensoes in tipos.items():
-            for ext in extensoes:
-                if arquivo.lower().endswith(ext):
-                    destino = os.path.join(pasta, pasta_nome, arquivo)
+    movido = False
 
-                    if not os.path.exists(destino):
-                        shutil.move(caminho_arquivo, destino)
-                        print(f"Movendo: {arquivo} → {pasta_nome}")
-                        movidos += 1
-                    else:
-                        print(f"Já existe: {arquivo}")
-                        ignorados += 1
+    for pasta_nome, extensoes in tipos.items():
+        for ext in extensoes:
+            if arquivo.lower().endswith(ext):
+                destino = os.path.join(pasta, pasta_nome, arquivo)
 
-                    movido = True
-                    break
+                if not os.path.exists(destino):
+                    shutil.move(caminho_arquivo, destino)
+                    print(f"Movendo: {arquivo} → {pasta_nome}")
+                    movidos += 1
+                else:
+                    print(f"Já existe: {arquivo}")
+                    ignorados += 1
 
-            if movido:
+                movido = True
                 break
 
-        if not movido:
+        if movido:
+            break
+
+    # Se não encontrou tipo
+    if not movido:
+        destino = os.path.join(pasta, outros, arquivo)
+
+        if not os.path.exists(destino):
+            shutil.move(caminho_arquivo, destino)
+            print(f"Movendo: {arquivo} → Outros")
+            movidos += 1
+        else:
             ignorados += 1
 
+# Relatório final
 print("\n===== RELATÓRIO =====")
 print(f"Arquivos movidos: {movidos}")
 print(f"Arquivos ignorados: {ignorados}")
+
+
+
+
